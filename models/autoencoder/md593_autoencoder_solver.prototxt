@@ -1,19 +1,18 @@
-net: "/home/jiaxuzhu/developer/csd395/models/autoencoder/md593_autoencoder.prototxt"
-test_state: { stage: 'test-on-train' }
-test_iter: 500
-test_state: { stage: 'test-on-test' }
-test_iter: 100
-test_interval: 500
-test_compute_loss: true
-base_lr: 0.01
-lr_policy: "step"
-gamma: 0.1
-stepsize: 10000
-display: 100
-max_iter: 65000
-weight_decay: 0.0005
-snapshot: 10000
-snapshot_prefix: "/oasis/projects/nsf/csd395/jiaxuzhu/models/autoencoder/md593_autoencoder"
+net: "/home/jiaxuzhu/developer/CSD395/models/autoencoder/md593_autoencoder.prototxt"
+test_iter: 12
+test_interval: 200
+
+base_lr: 1e-8
+lr_policy: "inv"
+gamma: 0.0001 
+power: 0.75
 momentum: 0.9
-# solver mode: CPU or GPU
-solver_mode: CPU
+
+# Display every 100 iterations
+display: 50
+# The maximum number of iterations
+max_iter: 1000
+# snapshot intermediate results
+snapshot: 5000
+snapshot_prefix: "../models/autoencoder/md593_autoencoder"
+solver_mode: GPU

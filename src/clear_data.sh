@@ -1,4 +1,4 @@
-DATAPATH=~/developer/csd395/data
+DATAPATH=~/developer/CSD395/data
 
 rm -rf $DATAPATH/md593_sample/md593_sample_train
 rm -rf $DATAPATH/md593_sample/md593_sample_test

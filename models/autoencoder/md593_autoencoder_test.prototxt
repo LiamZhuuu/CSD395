@@ -1,39 +1,12 @@
 name: "MD593Autoencoder"
-layer {
-  name: "data"
-  type: "Data"
-  top: "data"
-  include {
-    phase: TRAIN
-  }
-  transform_param {
-    scale: 0.00392156862745
-  }
-  data_param {
-    source: "/home/jiaxuzhu/developer/CSD395/data/md593_sample/md593_sample_train"
-    batch_size: 50
-    backend: LMDB
-  }
-}
 
-layer {
-  name: "data"
-  type: "Data"
-  top: "data"
-  include {
-    phase: TEST
-  }
-  transform_param {
-    scale: 0.00392156862745
-  }
-  data_param {
-    source: "/home/jiaxuzhu/developer/CSD395/data/md593_sample/md593_sample_test"
-    batch_size: 50
-    backend: LMDB
+input: "data"
+input_shape {
+  dim: 1
+  dim: 1
+  dim: 225
+  dim: 225
 }
-}
-
-
 #conv1
 layer {  
   bottom: "data" 
@@ -260,12 +233,4 @@ layer { bottom: 'unpool2' top: 'deconv2' name: 'deconv2' type: "Deconvolution"
   } 
 }
 
-
-layer {
-  name: "loss"
-  type: "EuclideanLoss"
-  bottom: "data"
-  bottom: "deconv2"
-  top: "loss"
-}
 
