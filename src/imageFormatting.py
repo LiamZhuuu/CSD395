@@ -10,7 +10,7 @@ img_path = img_dir + 'MD593_%04d_lossless_warped.tif' % (139)
 img = cv2.imread(img_path)
 gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-border_width = 28
+border_width = 48
 height, width, channels = img.shape
 #img_padded = cv2.copyMakeBorder(gray_img, border_width, border_width, border_width, border_width, cv2.BORDER_CONSTANT, value=0)
 img_padded = gray_img

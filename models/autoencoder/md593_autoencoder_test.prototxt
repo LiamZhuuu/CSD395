@@ -1,37 +1,11 @@
 name: "MD593Autoencoder"
 
-layer {
-  name: "data"
-  type: "Data"
-  top: "data"
-  include {
-    phase: TRAIN
-  }
-  transform_param {
-    scale: 0.00392156862745
-  }
-  data_param {
-    source: "/home/jiaxuzhu/developer/CSD395/data/md593_sample/md593_sample_train"
-    batch_size: 100
-    backend: LMDB
-  }
-}
-
-layer {
-  name: "data"
-  type: "Data"
-  top: "data"
-  include {
-    phase: TEST
-  }
-  transform_param {
-    scale: 0.00392156862745
-  }
-  data_param {
-    source: "/home/jiaxuzhu/developer/CSD395/data/md593_sample/md593_sample_test"
-    batch_size: 100
-    backend: LMDB
-}
+input: "data"
+input_shape {
+  dim: 1
+  dim: 1
+  dim: 96
+  dim: 96
 }
 
 #conv1
@@ -45,7 +19,7 @@ layer {
   convolution_param {
     num_output: 16
     stride: 1
-    kernel_size: 3
+    kernel_size: 5
     weight_filler {
       type: "xavier"
     }
@@ -67,7 +41,7 @@ layer {
   convolution_param {
     num_output: 16
     stride: 1
-    kernel_size: 3
+    kernel_size: 5
     weight_filler {
       type: "xavier" 
     }
@@ -101,7 +75,28 @@ layer {
   convolution_param {
     num_output: 32
     stride: 1
-    kernel_size: 3
+    kernel_size: 5
+    weight_filler {
+      type: "xavier" 
+    }
+    bias_filler {
+      type: "constant" # initialize the biases to zero (0)
+      value: 0
+    }
+  }
+}
+
+layer {  
+  bottom: "conv3" 
+  top: "conv4" 
+  name: "conv4"
+  type: "Convolution"
+  param { lr_mult: 1 decay_mult: 1 }
+  param { lr_mult: 2 decay_mult: 0 }
+  convolution_param {
+    num_output: 32
+    stride: 1
+    kernel_size: 5
     weight_filler {
       type: "xavier" 
     }
@@ -113,7 +108,7 @@ layer {
 }
 
 layer {
-  bottom: "conv3"  
+  bottom: "conv4"  
   top: "pool2" 
   top:"pool2_mask"
   name: "pool2"  
@@ -130,16 +125,29 @@ layer { type: "Unpooling"  bottom: "pool2"  bottom: "pool2_mask"  top: "unpool2"
     unpool: MAX 
     kernel_size: 2
     stride: 2
-    unpool_size:  24
+    unpool_size:  36
   }
 }
 
-layer { bottom: 'unpool2' top: 'deconv3' name: 'deconv3' type: "Deconvolution"
+layer { bottom: 'unpool2' top: 'deconv4' name: 'deconv4' type: "Deconvolution"
+  param { lr_mult: 1 decay_mult: 1 }
+  param { lr_mult: 2 decay_mult: 0 }
+  convolution_param { 
+    num_output: 32
+    kernel_size: 5
+    stride: 1
+    weight_filler {      type: "xavier"    }
+    bias_filler {      type: "constant"      value: 0    }
+  }
+} 
+
+
+layer { bottom: 'deconv4' top: 'deconv3' name: 'deconv3' type: "Deconvolution"
   param { lr_mult: 1 decay_mult: 1 }
   param { lr_mult: 2 decay_mult: 0 }
   convolution_param { 
     num_output: 16
-    kernel_size: 3
+    kernel_size: 5
     stride: 1
     weight_filler {      type: "xavier"    }
     bias_filler {      type: "constant"      value: 0    }
@@ -151,7 +159,7 @@ layer { type: "Unpooling"  bottom: "deconv3"  bottom: "pool1_mask"  top: "unpool
     unpool: MAX 
     kernel_size: 2
     stride: 2
-    unpool_size:  52
+    unpool_size:  88
   }
 }
 
@@ -160,8 +168,8 @@ layer { bottom: 'unpool1' top: 'deconv2' name: 'deconv2' type: "Deconvolution"
   param { lr_mult: 1 decay_mult: 1 }
   param { lr_mult: 2 decay_mult: 0 }
   convolution_param { 
-    num_output: 1
-    kernel_size: 3
+    num_output: 16
+    kernel_size: 5
     stride: 1
     weight_filler {      type: "xavier"    }
     bias_filler {      type: "constant"      value: 0    }
@@ -175,19 +183,10 @@ layer { bottom: 'deconv2' top: 'deconv1' name: 'deconv1' type: "Deconvolution"
   param { lr_mult: 2 decay_mult: 0 }
   convolution_param { 
     num_output: 1
-    kernel_size: 3
+    kernel_size: 5
     stride: 1
     weight_filler {      type: "xavier"     }
     bias_filler {      type: "constant"      value: 0    }
   } 
 }
 
-
-
-layer {
-  name: "loss"
-  type: "EuclideanLoss"
-  bottom: "data"
-  bottom: "deconv1"
-  top: "loss"
-}
