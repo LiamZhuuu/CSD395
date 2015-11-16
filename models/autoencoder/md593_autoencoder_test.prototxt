@@ -4,8 +4,8 @@ input: "data"
 input_shape {
   dim: 1
   dim: 1
-  dim: 96
-  dim: 96
+  dim: 100
+  dim: 100
 }
 
 #conv1
@@ -19,7 +19,7 @@ layer {
   convolution_param {
     num_output: 16
     stride: 1
-    kernel_size: 5
+    kernel_size: 11
     weight_filler {
       type: "xavier"
     }
@@ -41,7 +41,7 @@ layer {
   convolution_param {
     num_output: 16
     stride: 1
-    kernel_size: 5
+    kernel_size: 11
     weight_filler {
       type: "xavier" 
     }
@@ -120,12 +120,13 @@ layer {
   }
 }
 
+
 layer { type: "Unpooling"  bottom: "pool2"  bottom: "pool2_mask"  top: "unpool2"  name: "unpool1"
   unpooling_param {   
     unpool: MAX 
     kernel_size: 2
     stride: 2
-    unpool_size:  36
+    unpool_size:  32
   }
 }
 
@@ -159,7 +160,7 @@ layer { type: "Unpooling"  bottom: "deconv3"  bottom: "pool1_mask"  top: "unpool
     unpool: MAX 
     kernel_size: 2
     stride: 2
-    unpool_size:  88
+    unpool_size:  80
   }
 }
 
@@ -169,7 +170,7 @@ layer { bottom: 'unpool1' top: 'deconv2' name: 'deconv2' type: "Deconvolution"
   param { lr_mult: 2 decay_mult: 0 }
   convolution_param { 
     num_output: 16
-    kernel_size: 5
+    kernel_size: 11
     stride: 1
     weight_filler {      type: "xavier"    }
     bias_filler {      type: "constant"      value: 0    }
@@ -183,10 +184,11 @@ layer { bottom: 'deconv2' top: 'deconv1' name: 'deconv1' type: "Deconvolution"
   param { lr_mult: 2 decay_mult: 0 }
   convolution_param { 
     num_output: 1
-    kernel_size: 5
+    kernel_size: 11
     stride: 1
     weight_filler {      type: "xavier"     }
     bias_filler {      type: "constant"      value: 0    }
   } 
 }
+
 

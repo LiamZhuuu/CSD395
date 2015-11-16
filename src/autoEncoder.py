@@ -8,7 +8,7 @@ solver.solve()
 
 filters = solver.net.params['conv1'][0].data
 print filters
-img = solver.net.blobs['deconv1'].data[9].reshape(96,96) * 255
+img = solver.net.blobs['deconv1'].data[9].reshape(100,100) * 255
 cv2.imwrite('recon.jpg', img)
 #print net.blobs['data'].data
 

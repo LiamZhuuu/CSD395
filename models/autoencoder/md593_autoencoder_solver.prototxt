@@ -2,9 +2,9 @@ net: "/home/jiaxuzhu/developer/CSD395/models/autoencoder/md593_autoencoder.proto
 test_iter: 100
 test_interval: 500
 
-base_lr: 1e-6
+base_lr: 1.5e-6
 lr_policy: "inv"
-power: 0.75
+power: 0.8
 gamma: 0.0001
 
 #lr_policy: "step"
