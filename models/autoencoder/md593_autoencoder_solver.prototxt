@@ -1,22 +1,20 @@
 net: "/home/jiaxuzhu/developer/CSD395/models/autoencoder/md593_autoencoder.prototxt"
-test_iter: 100
-test_interval: 500
 
-base_lr: 1.5e-6
+test_interval: 80
+test_iter: 40
+display: 40
+max_iter: 6000
+
+base_lr: 1e-5
 lr_policy: "inv"
-power: 0.8
 gamma: 0.0001
+power: 0.8
+momentum: 0.9
+weight_decay: 0.0005
 
-#lr_policy: "step"
-#gamma: 0.01
-#stepsize: 2000
 
 
-# Display every 100 iterations
-display: 100
-# The maximum number of iterations
-max_iter: 5000
 # snapshot intermediate results
-snapshot: 2500
+snapshot: 2000
 snapshot_prefix: "../models/autoencoder/md593_autoencoder"
 solver_mode: GPU

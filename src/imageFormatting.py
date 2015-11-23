@@ -10,7 +10,7 @@ img_path = img_dir + 'MD593_%04d_lossless_warped.tif' % (139)
 img = cv2.imread(img_path)
 gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-border_width = 50
+border_width = 56
 height, width, channels = img.shape
 #img_padded = cv2.copyMakeBorder(gray_img, border_width, border_width, border_width, border_width, cv2.BORDER_CONSTANT, value=0)
 img_padded = gray_img
@@ -30,8 +30,8 @@ txn_train = db_train.begin(write=True,buffers=True)
 txn_test = db_test.begin(write=True,buffers=True)
  
 count = 0
-for x in range(border_width, border_width+1000, 10):
-    for y in range(border_width, border_width+1000, 10):
+for x in range(border_width, border_width+400, 10):
+    for y in range(border_width, border_width+400, 10):
         patch = img_padded[y-border_width : y+border_width ,x-border_width:x+border_width]
         if count == 20:
             cv2.imwrite('../images/md593_test.jpg', patch)

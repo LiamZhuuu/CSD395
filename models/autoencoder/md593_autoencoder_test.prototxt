@@ -4,22 +4,21 @@ input: "data"
 input_shape {
   dim: 1
   dim: 1
-  dim: 100
-  dim: 100
+  dim: 112
+  dim: 112
 }
 
-#conv1
 layer {  
   bottom: "data" 
-  top: "conv1" 
-  name: "conv1"
+  top: "conv1"  name: "conv1"
   type: "Convolution"
   param { lr_mult: 1 decay_mult: 1 }
   param { lr_mult: 2 decay_mult: 0 }
   convolution_param {
-    num_output: 16
+    num_output: 16 
     stride: 1
     kernel_size: 11
+    pad: 5
     weight_filler {
       type: "xavier"
     }
@@ -29,10 +28,23 @@ layer {
     }
   }
 }
+layer {
+  name: "tanh1"
+  bottom: "conv1"
+  top: "conv1"
+  type: "TanH"
+}
 
-#conv1
-layer {  
-  bottom: "conv1" 
+layer {
+  bottom: "conv1"   top: "pool1"  top:"pool1_mask" name: "pool1"   type: "Pooling"
+  pooling_param {    
+    pool: MAX  kernel_size: 2 stride: 2
+  }
+}
+
+#conv2
+layer {
+  bottom: "pool1" 
   top: "conv2" 
   name: "conv2"
   type: "Convolution"
@@ -42,6 +54,7 @@ layer {
     num_output: 16
     stride: 1
     kernel_size: 11
+    pad: 5
     weight_filler {
       type: "xavier" 
     }
@@ -51,22 +64,23 @@ layer {
     }
   }
 }
+layer {
+  name: "tanh2"
+  bottom: "conv2"
+  top: "conv2"
+  type: "TanH"
+}
+
 
 layer {
-  bottom: "conv2"  
-  top: "pool1" 
-  top:"pool1_mask"
-  name: "pool1"  
-  type: "Pooling"
+  bottom: "conv2"   top: "pool2"  top:"pool2_mask" name: "pool2"   type: "Pooling"
   pooling_param {    
-    pool: MAX    
-    kernel_size: 2
-    stride: 2
+    pool: MAX  kernel_size: 2 stride: 2
   }
 }
 
 layer {  
-  bottom: "pool1" 
+  bottom: "pool2" 
   top: "conv3" 
   name: "conv3"
   type: "Convolution"
@@ -76,27 +90,7 @@ layer {
     num_output: 32
     stride: 1
     kernel_size: 5
-    weight_filler {
-      type: "xavier" 
-    }
-    bias_filler {
-      type: "constant" # initialize the biases to zero (0)
-      value: 0
-    }
-  }
-}
-
-layer {  
-  bottom: "conv3" 
-  top: "conv4" 
-  name: "conv4"
-  type: "Convolution"
-  param { lr_mult: 1 decay_mult: 1 }
-  param { lr_mult: 2 decay_mult: 0 }
-  convolution_param {
-    num_output: 32
-    stride: 1
-    kernel_size: 5
+    pad: 2
     weight_filler {
       type: "xavier" 
     }
@@ -108,87 +102,236 @@ layer {
 }
 
 layer {
-  bottom: "conv4"  
-  top: "pool2" 
-  top:"pool2_mask"
-  name: "pool2"  
-  type: "Pooling"
+  name: "tanh3"
+  bottom: "conv3"
+  top: "conv3"
+  type: "TanH"
+}
+
+layer {
+  bottom: "conv3"   top: "pool3"  top:"pool3_mask" name: "pool3"   type: "Pooling"
   pooling_param {    
-    pool: MAX    
-    kernel_size: 2
-    stride: 2
+    pool: MAX  kernel_size: 2 stride: 2
+  }
+}
+
+layer {  
+  bottom: "pool3" 
+  top: "conv4" 
+  name: "conv4"
+  type: "Convolution"
+  param { lr_mult: 1 decay_mult: 1 }
+  param { lr_mult: 2 decay_mult: 0 }
+  convolution_param {
+    num_output: 32
+    stride: 1
+    kernel_size: 5
+    pad: 2
+    weight_filler {
+      type: "xavier" 
+    }
+    bias_filler {
+      type: "constant" # initialize the biases to zero (0)
+      value: 0
+    }
+  }
+}
+
+layer {
+  name: "tanh4"
+  bottom: "conv4"
+  top: "conv4"
+  type: "TanH"
+}
+
+layer {
+  bottom: "conv4"   top: "pool4"  top:"pool4_mask" name: "pool4"   type: "Pooling"
+  pooling_param {    
+    pool: MAX  kernel_size: 2 stride: 2
   }
 }
 
 
-layer { type: "Unpooling"  bottom: "pool2"  bottom: "pool2_mask"  top: "unpool2"  name: "unpool1"
+layer {  
+  bottom: "pool4" 
+  top: "fc1" 
+  name: "fc1"
+  type: "Convolution"
+  param { lr_mult: 1 decay_mult: 1 }
+  param { lr_mult: 2 decay_mult: 0 }
+  convolution_param {
+    num_output: 512
+    stride: 1
+    kernel_size: 7
+    weight_filler {
+      type: "xavier" 
+    }
+    bias_filler {
+      type: "constant" # initialize the biases to zero (0)
+      value: 0
+    }
+  }
+}
+
+layer {
+  name: "fctanh1"
+  bottom: "fc1"
+  top: "fc1"
+  type: "TanH"
+}
+
+layer {  
+  bottom: "fc1" 
+  top: "fc2" 
+  name: "fc2"
+  type: "Convolution"
+  param { lr_mult: 1 decay_mult: 1 }
+  param { lr_mult: 2 decay_mult: 0 }
+  convolution_param {
+    num_output: 128
+    stride: 1
+    kernel_size: 1
+    weight_filler {
+      type: "xavier" 
+    }
+    bias_filler {
+      type: "constant" # initialize the biases to zero (0)
+      value: 0
+    }
+  }
+}
+
+layer {
+  name: "fctanh2"
+  bottom: "fc2"
+  top: "fc2"
+  type: "TanH"
+}
+
+layer { bottom: "fc2" top: "fc3" name: "fc3" type: "Deconvolution"
+  param { lr_mult: 1 decay_mult: 1 }
+  param { lr_mult: 2 decay_mult: 0 }
+  convolution_param { 
+    num_output: 32
+    kernel_size: 7
+    weight_filler {      type: "xavier"    }
+    bias_filler {      type: "constant"      value: 0    }
+  }
+} 
+
+layer {
+  name: "fctanh3"
+  bottom: "fc3"
+  top: "fc3"
+  type: "TanH"
+}
+
+layer { type: "Unpooling"  bottom: "fc3"  bottom: "pool4_mask"  top: "unpool4"  name: "unpool4"
   unpooling_param {   
     unpool: MAX 
     kernel_size: 2
     stride: 2
-    unpool_size:  32
+    unpool_size:  14
   }
 }
 
-layer { bottom: 'unpool2' top: 'deconv4' name: 'deconv4' type: "Deconvolution"
+layer { bottom: "unpool4" top: "deconv4" name: "deconv4" type: "Deconvolution"
   param { lr_mult: 1 decay_mult: 1 }
   param { lr_mult: 2 decay_mult: 0 }
   convolution_param { 
     num_output: 32
     kernel_size: 5
     stride: 1
+    pad: 2
     weight_filler {      type: "xavier"    }
     bias_filler {      type: "constant"      value: 0    }
   }
 } 
 
+layer {
+  name: "detanh4"
+  bottom: "deconv4"
+  top: "deconv4"
+  type: "TanH"
+}
 
-layer { bottom: 'deconv4' top: 'deconv3' name: 'deconv3' type: "Deconvolution"
+layer { type: "Unpooling"  bottom: "deconv4"  bottom: "pool3_mask"  top: "unpool3"  name: "unpool3"
+  unpooling_param {   
+    unpool: MAX 
+    kernel_size: 2
+    stride: 2
+    unpool_size:  28
+  }
+}
+
+layer { bottom: "unpool3" top: "deconv3" name: "deconv3" type: "Deconvolution"
   param { lr_mult: 1 decay_mult: 1 }
   param { lr_mult: 2 decay_mult: 0 }
   convolution_param { 
     num_output: 16
     kernel_size: 5
     stride: 1
+    pad: 2
     weight_filler {      type: "xavier"    }
     bias_filler {      type: "constant"      value: 0    }
   }
 } 
 
-layer { type: "Unpooling"  bottom: "deconv3"  bottom: "pool1_mask"  top: "unpool1"  name: "unpool1"
+layer {
+  name: "detanh3"
+  bottom: "deconv3"
+  top: "deconv3"
+  type: "TanH"
+}
+
+layer { type: "Unpooling"  bottom: "deconv3"  bottom: "pool2_mask"  top: "unpool2"  name: "unpool2"
   unpooling_param {   
     unpool: MAX 
     kernel_size: 2
     stride: 2
-    unpool_size:  80
+    unpool_size:  56
   }
 }
 
 
-layer { bottom: 'unpool1' top: 'deconv2' name: 'deconv2' type: "Deconvolution"
+layer { bottom: "unpool2" top: "deconv2" name: "deconv2" type: "Deconvolution"
   param { lr_mult: 1 decay_mult: 1 }
   param { lr_mult: 2 decay_mult: 0 }
   convolution_param { 
     num_output: 16
-    kernel_size: 11
+    kernel_size:11
     stride: 1
+    pad: 5
     weight_filler {      type: "xavier"    }
     bias_filler {      type: "constant"      value: 0    }
   }
 } 
 
+layer {
+  name: "detanh2"
+  bottom: "deconv2"
+  top: "deconv2"
+  type: "TanH"
+}
 
+layer { type: "Unpooling"  bottom: "deconv2"  bottom: "pool1_mask"  top: "unpool1"  name: "unpool1"
+  unpooling_param {   
+    unpool: MAX 
+    kernel_size: 2
+    stride: 2
+    unpool_size:  112
+  }
+}
 
-layer { bottom: 'deconv2' top: 'deconv1' name: 'deconv1' type: "Deconvolution"
+layer { bottom: "unpool1" top: "deconv1" name: "deconv1" type: "Deconvolution"
   param { lr_mult: 1 decay_mult: 1 }
   param { lr_mult: 2 decay_mult: 0 }
   convolution_param { 
     num_output: 1
     kernel_size: 11
     stride: 1
+    pad: 5
     weight_filler {      type: "xavier"     }
     bias_filler {      type: "constant"      value: 0    }
   } 
 }
-
-
