@@ -3,3 +3,6 @@ images/*
 *.jpg
 *.solverstate
 *.caffemodel
+model/*
+.idea/*
+.ipynb_checkpoints/*
