@@ -20,16 +20,21 @@ class FeatureExtractor:
 
 
 if __name__ == '__main__':
-    data_dir = '/home/jiaxuzhu/data/landmark_patches'
-    model_dir = '/home/jiaxuzhu/developer/CSD395/model/vgg16'
-    names = ['5N', '7n', '7N', '12N', 'Gr', 'LVe', 'Pn', 'SuVe', 'VLL']
+    data_dir = '/oasis/projects/nsf/csd395/yuncong/CSHL_data_patches'
+    model_dir = '/oasis/projects/nsf/csd395/jiaxuzhu/models/vgg16/vgg16'
+    for root, dirs, files in os.walk(data):
+        break
 
     fe = FeatureExtractor(model_dir, batch_size=16, ctx='cpu')
 
-    for name in names:
-        images = np.load(os.path.join(data_dir, '%s_patches.npy' % name)).transpose(0, 3, 1, 2)
+    for name in files:
+        types = name.split('.')[-1]
+        if types != 'npy':
+            continue
+        prefix = name.split('.')[0]
+        images = np.load(os.path.join(data_dir, name)).transpose(0, 3, 1, 2)
         print images.shape
 
         features = fe.extract(images)
         print features.shape
-        np.save(os.path.join(data_dir, '%s_features.npy' % name), features)
+        np.save(os.path.join(data_dir, '%s_features.npy' % prefix), features)
