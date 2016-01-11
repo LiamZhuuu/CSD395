@@ -22,7 +22,7 @@ class FeatureExtractor:
 if __name__ == '__main__':
     data_dir = '/oasis/projects/nsf/csd395/yuncong/CSHL_data_patches'
     model_dir = '/oasis/projects/nsf/csd395/jiaxuzhu/models/vgg16/vgg16'
-    for root, dirs, files in os.walk(data):
+    for root, dirs, files in os.walk(data_dir):
         break
 
     fe = FeatureExtractor(model_dir, batch_size=16, ctx='cpu')
