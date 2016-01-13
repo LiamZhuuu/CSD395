@@ -6,3 +6,4 @@ images/*
 model/
 .idea/
 */.ipynb_checkpoints/
+*.pyc

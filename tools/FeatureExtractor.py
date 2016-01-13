@@ -1,7 +1,7 @@
 import mxnet as mx
 import numpy as np
 import os
-
+import shutil
 
 class FeatureExtractor:
     def __init__(self, model_dir, batch_size=1, ctx='cpu'):
@@ -22,14 +22,24 @@ class FeatureExtractor:
 if __name__ == '__main__':
     data_dir = '/home/jiaxuzhu/data/landmark_patches'
     model_dir = '/home/jiaxuzhu/developer/CSD395/model/vgg16'
-    names = ['5N', '7n', '7N', '12N', 'Gr', 'LVe', 'Pn', 'SuVe', 'VLL']
+    # names = ['5N', '7n', '7N', '12N', 'Gr', 'LVe', 'Pn', 'SuVe', 'VLL']
 
-    fe = FeatureExtractor(model_dir, batch_size=16, ctx='cpu')
-
-    for name in names:
-        images = np.load(os.path.join(data_dir, '%s_patches.npy' % name)).transpose(0, 3, 1, 2)
+    fe = FeatureExtractor(model_dir, batch_size=16, ctx='gpu')
+    for root, dirs, files in os.walk(data_dir):
+        break
+    dst = os.path.join(data_dir, 'features')
+    if os.path.exists(dst):
+        shutil.rmtree(dst)
+    os.mkdir(dst)
+    for name in files:
+        type = name.split('.')[-1]
+        prefix = name.split('.')[0]
+        if type != 'npy':
+            continue
+        images = np.load(os.path.join(data_dir, name)).transpose(0, 3, 1, 2)
         print images.shape
 
         features = fe.extract(images)
         print features.shape
-        np.save(os.path.join(data_dir, '%s_features.npy' % name), features)
+
+        np.save(os.path.join(dst, '%s_features.npy' % prefix), features)
