@@ -36,10 +36,28 @@ if __name__ == '__main__':
         prefix = name.split('.')[0]
         if type != 'npy':
             continue
+'''
+    data_dir = '/oasis/projects/nsf/csd395/yuncong/CSHL_data_patches'
+    model_dir = '/oasis/projects/nsf/csd395/jiaxuzhu/models/vgg16/vgg16'
+    for root, dirs, files in os.walk(data_dir):
+        break
+
+    fe = FeatureExtractor(model_dir, batch_size=16, ctx='cpu')
+
+    for name in files:
+        types = name.split('.')[-1]
+        if types != 'npy':
+            continue
+        prefix = name.split('.')[0]
+'''
         images = np.load(os.path.join(data_dir, name)).transpose(0, 3, 1, 2)
         print images.shape
 
         features = fe.extract(images)
         print features.shape
+<<<<<<< HEAD
 
         np.save(os.path.join(dst, '%s_features.npy' % prefix), features)
+=======
+        np.save(os.path.join(data_dir, '%s_features.npy' % prefix), features)
+>>>>>>> 132e2b68b83b478ecae4c860b70ab7ea7d336f53
