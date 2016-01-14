@@ -9,4 +9,4 @@ model_dir = '/home/jiaxuzhu/developer/CSD395/model'
 prefix = 'vgg16'
 n_iter = 1
 
-tc.mx_init(model_dir, prefix, n_iter)
+# tc.mx_init(model_dir, prefix, n_iter)

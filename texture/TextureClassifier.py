@@ -1,6 +1,6 @@
 import os
 import numpy as np
-import mxnet as mx
+import scipy
 
 def data_separation(data):
     n_data = len(data)

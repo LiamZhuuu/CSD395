@@ -55,9 +55,7 @@ if __name__ == '__main__':
 
         features = fe.extract(images)
         print features.shape
-<<<<<<< HEAD
 
         np.save(os.path.join(dst, '%s_features.npy' % prefix), features)
-=======
-        np.save(os.path.join(data_dir, '%s_features.npy' % prefix), features)
->>>>>>> 132e2b68b83b478ecae4c860b70ab7ea7d336f53
+'''        np.save(os.path.join(data_dir, '%s_features.npy' % prefix), features)
+'''
