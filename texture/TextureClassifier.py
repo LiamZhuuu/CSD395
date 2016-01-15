@@ -1,6 +1,8 @@
 import os
 import numpy as np
 import scipy
+import mxnet as mx
+
 
 def data_separation(data):
     n_data = len(data)
@@ -24,7 +26,6 @@ class TextureClassifier:
             patches = data_separation(patches)
 
             labels = np.multiply(np.ones((n_sample, 1)), idx).astype(int)
-            print np.max(labels)
             labels = data_separation(labels)
 
             if self.patches is None:
@@ -41,17 +42,20 @@ class TextureClassifier:
         model = mx.model.FeedForward.load(os.path.join(model_dir, prefix), n_iter)
         self.init_model = model
         internals = model.symbol.get_internals()
-        symbol = internals['fc7_output']
-        symbol = mx.symbol.FullyConnected(data=symbol, name='fc8', num_hidden=self.n_class)
+        symbol = internals['drop7_output']
+        symbol = mx.symbol.FullyConnected(data=symbol, name='full8', num_hidden=self.n_class)
         self.symbol = mx.symbol.SoftmaxOutput(data=symbol, name='softmax')
 
     def mx_training(self, l_rate, b_size):
-        opt = mx.optimizer.sgd()
-        self.net = mx.model.FeedForward(ctx=mx.gpu(), symbol=self.symbol,
+        opt = mx.optimizer.SGD(learning_rate=l_rate)
+        self.net = mx.model.FeedForward(ctx=mx.gpu(), symbol=self.symbol, num_epoch=2,
                                         arg_params=self.init_model.arg_params, aux_params=self.init_model.aux_params,
                                         allow_extra_params=True)
-        train_iter = mx.io.NDArrayIter(self.patches['train'], label=self.labels['train'], batch_size=b_size)
-        val_iter = mx.io.NDArrayIter(self.patches['val'], label=self.labels['val'], batch_size=b_size)
-        test_iter = mx.io.NDArrayIter(self.patches['test'], label=self.labels['test'], batch_size=b_size)
-        self.net.fit(train_iter, eval_data=val_iter)
+
+        print np.max(self.labels['train'])
+        train_iter = mx.io.NDArrayIter(self.patches['train'], label=self.labels['train'].flatten(), batch_size=b_size)
+        val_iter = mx.io.NDArrayIter(self.patches['val'], label=self.labels['val'].flatten(), batch_size=b_size)
+        test_iter = mx.io.NDArrayIter(self.patches['test'], label=self.labels['test'].flatten(), batch_size=b_size)
+
+        self.net.fit(train_iter, eval_data=val_iter, batch_end_callback=mx.callback.Speedometer(b_size, 50))
 
