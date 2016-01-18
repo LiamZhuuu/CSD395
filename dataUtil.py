@@ -9,11 +9,13 @@ def data_sampling(data_dir, dst_dir, p_labels, n_sample):
         shutil.rmtree(dst_dir)
     os.mkdir(dst_dir)
 
-    train_list = open(os.path.join(dst_dir, 'train_list.txt'), 'w')
-    test_list = open(os.path.join(dst_dir, 'test_list.txt'), 'w')
-    eval_list = open(os.path.join(dst_dir, 'eval_list.txt'), 'w')
+    files = {}
+    files['train'] = open(os.path.join(dst_dir, 'train_list.txt'), 'w')
+    files['test'] = open(os.path.join(dst_dir, 'test_list.txt'), 'w')
+    files['eval'] = open(os.path.join(dst_dir, 'eval_list.txt'), 'w')
 
     idx = 0
+    lists = {'train': [], 'test': [], 'eval': []}
     for j in range(len(p_labels)):
             p_name = p_labels[j]
             print p_name
@@ -32,15 +34,18 @@ def data_sampling(data_dir, dst_dir, p_labels, n_sample):
                 image_path = os.path.join(sub_dst, '%s_%08d.jpg' % (p_name, i))
                 cv2.imwrite(image_path, patches[i, :])
                 if i < (n_sample / 2):
-                    train_list.write('%d\t%d\t%s\n' %(idx, j, '%s/%s_%08d.jpg' % (p_name, p_name, i)))
+                    lists['train'].append('%d\t%d\t%s\n' % (idx, j, '%s/%s_%08d.jpg' % (p_name, p_name, i)))
                 elif i < (n_sample / 4 * 3):
-                    eval_list.write('%d\t%d\t%s\n' %(idx, j, '%s/%s_%08d.jpg' % (p_name, p_name, i)))
+                    lists['eval'].append('%d\t%d\t%s\n' % (idx, j, '%s/%s_%08d.jpg' % (p_name, p_name, i)))
                 else:
-                    test_list.write('%d\t%d\t%s\n' %(idx, j, '%s/%s_%08d.jpg' % (p_name, p_name, i)))
+                    lists['test'].append('%d\t%d\t%s\n' % (idx, j, '%s/%s_%08d.jpg' % (p_name, p_name, i)))
                 idx += 1
-    train_list.close()
-    eval_list.close()
-    test_list.close()
+
+    for key,value in lists.items():
+        idx = np.random.permutation(len(value))
+        for i in range(len(idx)):
+            files[key].write(value[idx[i]])
+        files[key].close()
 
 # def data_loading(image_dir, p_labels, n_sample, ):
 

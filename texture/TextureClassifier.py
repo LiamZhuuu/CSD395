@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, '/home/jiaxuzhu/developer/mxnet/python')
 import mxnet as mx
 import cv2
-
+import logging
 
 def data_separation(data):
     n_data = len(data)
@@ -21,34 +21,50 @@ class TextureClassifier:
     def __init__(self, data_dir, model_dir, prefix, n_iter, b_size, n_class):
         sets = ['train', 'eval', 'test']
         self.iter = {}
+        self.n_class = n_class
         for dataset in sets:
             rec_file = os.path.join(data_dir, '%s.rec' % dataset)
             self.iter[dataset] = mx.io.ImageRecordIter(
                 path_imgrec=rec_file,
                 batch_size=b_size,
-                shuffle=True,
-                data_shape=(3, 224, 224)
+                data_shape=(3, 224, 224),
+                mean_img=os.path.join(model_dir, 'mean_224.nd'),
             )
-        self.init_model = mx.model.FeedForward.load(os.path.join(model_dir, prefix), n_iter)
+        self.init_model = mx.model.FeedForward.load(os.path.join(model_dir, prefix), n_iter, ctx=mx.gpu())
         internals = self.init_model.symbol.get_internals()
         symbol = internals['flatten_output']
         symbol = mx.symbol.FullyConnected(data=symbol, name='fullc', num_hidden=n_class)
         self.symbol = mx.symbol.SoftmaxOutput(data=symbol, name='softmax')
         self.net = None
 
-    def mx_training(self, n_epoch, l_rate, b_size):
+    def mx_training(self, n_epoch, l_rate, b_size, dst_prefix):
         opt = mx.optimizer.SGD(learning_rate=l_rate)
         self.net = mx.model.FeedForward(ctx=mx.gpu(), symbol=self.symbol, num_epoch=n_epoch, optimizer=opt,
                                         arg_params=self.init_model.arg_params, aux_params=self.init_model.aux_params,
                                         allow_extra_params=True)
         self.net.fit(self.iter['train'], eval_data=self.iter['eval'],
-                     batch_end_callback=mx.callback.Speedometer(b_size, 30))
+                     batch_end_callback=mx.callback.Speedometer(b_size, 30),
+                     epoch_end_callback=mx.callback.do_checkpoint(dst_prefix))
 
-        labels = self.net.predict(self.iter['train'])
-        print self.net.arg_params['fullc_weight']
-        print labels[:10, :]
-        labels = np.argmax(labels, axis=1)
-        print labels
+        self.net.save(dst_prefix)
 
-        self.net.save('/home/jiaxuzhu/developer/CSD395/model/inception_texture')
+    def mx_confusion(self):
+        prob = self.init_model.predict(self.iter['test'])
+        logging.info('Finish predict...')
+        self.iter['test'].reset()
+        y_batch = []
+        for dbatch in self.iter['test']:
+            label = dbatch.label[0].asnumpy()
+            pad = self.iter['test'].getpad()
+            real_size = label.shape[0] - pad
+            y_batch.append(label[0:real_size])
+        y = np.concatenate(y_batch)
+        # get prediction label from
+        py = np.argmax(prob, axis=1)
+        acc1 = float(np.sum(py == y)) / len(y)
+        logging.info('testing accuracy = %f', acc1)
+        confusion = np.zeros((self.n_class, self.n_class))
+        for i in range(len(py)):
+            confusion[y[i], py[i]] += 1
+        return confusion
 
