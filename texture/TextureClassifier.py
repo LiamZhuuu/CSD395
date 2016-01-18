@@ -1,6 +1,8 @@
 import os
 import numpy as np
 import scipy
+import sys
+sys.path.insert(0, '/home/jiaxuzhu/developer/mxnet/python')
 import mxnet as mx
 import cv2
 
@@ -21,10 +23,10 @@ class TextureClassifier:
 
         for p_name in p_labels:
             patches = np.load(os.path.join(data_dir, '%s_patches.npy' % p_name))
-            for patch in patches:
-                print np.max(patch), np.min(patch)
-                cv2.imshow('ImageWindow', patch)
-                cv2.waitKey()
+            # for patch in patches:
+            #     print np.max(patch), np.min(patch)
+            #     cv2.imshow('ImageWindow', patch)
+            #     cv2.waitKey()
 
             patches = np.transpose(patches, (0, 3, 1, 2))
             shuffle = np.random.permutation(len(patches))
@@ -43,7 +45,7 @@ class TextureClassifier:
                     self.labels[key] = np.vstack((self.labels[key], labels[key]))
 
             idx += 1
-            print
+            print "%s patches loaded" % p_name
 
     def mx_init(self, model_dir, prefix, n_iter):
         model = mx.model.FeedForward.load(os.path.join(model_dir, prefix), n_iter)
@@ -57,7 +59,7 @@ class TextureClassifier:
         self.mxnet_mean = mx.nd.load(os.path.join(model_dir, 'mean_224.nd'))["mean_img"].\
             asnumpy().reshape((1, 3, 224, 224))
         for key in self.patches:
-            self.patches[key] = self.patches[key] - np.tile(self.mxnet_mean, (len(self.patches[key]), 1, 1, 1))
+            self.patches[key] = np.subtract(self.patches[key], np.tile(self.mxnet_mean, (len(self.patches[key]), 1, 1, 1)))
 
     def mx_training(self, l_rate, b_size):
         opt = mx.optimizer.SGD(learning_rate=l_rate)
@@ -70,10 +72,11 @@ class TextureClassifier:
         self.val_iter = mx.io.NDArrayIter(self.patches['val'], shuffle=True,
                                      label=self.labels['val'].flatten(), batch_size=b_size)
 
+        self.test_iter = mx.io.NDArrayIter(self.patches['test'], label=self.labels['test'].flatten(),
+                                      shuffle=True, batch_size=64)
 
-        self.net.fit(self.train_iter, eval_data=self.val_iter, batch_end_callback=mx.callback.Speedometer(b_size, 10))
+        self.net.fit(self.train_iter, eval_data=self.val_iter, batch_end_callback=mx.callback.Speedometer(b_size, 5))
 
-        self.train_iter.reset()
         labels = self.net.predict(self.train_iter)
         print labels[:10, :]
         labels = np.argmax(labels, axis=1)
@@ -85,8 +88,7 @@ class TextureClassifier:
 
     def mx_predict(self, model_dir, prefix, n_iter):
         model = mx.model.FeedForward.load(os.path.join(model_dir, prefix), n_iter, ctx=mx.gpu())
-        test_iter = mx.io.NDArrayIter(self.patches['test'], label=self.labels['test'].flatten(),
-                                      shuffle=True, batch_size=64)
+
         train_iter = mx.io.NDArrayIter(self.patches['train'], label=self.labels['train'].flatten(),
                                        shuffle=True, batch_size=64)
         labels = np.argmax(model.predict(train_iter), axis=1)
