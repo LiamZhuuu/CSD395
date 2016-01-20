@@ -1,6 +1,7 @@
 from texture.TextureClassifier import TextureClassifier
 import os
 import logging
+import numpy as np
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -17,9 +18,9 @@ p_labels = ['5N', '7n', '7N', '12N', 'Gr', 'LVe', 'Pn', 'SuVe', 'VLL']
 #
 # tc.mx_predict('/home/jiaxuzhu/developer/CSD395/model', 'inception_texture', 3)
 
-model_dir = '/home/jiaxuzhu/developer/CSD395/model/inception-bn'
+model_dir = '/home/jiaxuzhu/developer/CSD395/model_publish'
 prefix = 'inception-stage1'
 n_iter = 6
 
 tc = TextureClassifier(data_dir, model_dir, prefix, n_iter, 128, 10)
-print tc.mx_confusion()
+print np.argmax(tc.mx_predict('/home/jiaxuzhu/data/sample_patches/test.rec', 128), axis=1)

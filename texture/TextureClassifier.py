@@ -22,6 +22,7 @@ class TextureClassifier:
         sets = ['train', 'eval', 'test']
         self.iter = {}
         self.n_class = n_class
+        self.model_dir = model_dir
         for dataset in sets:
             rec_file = os.path.join(data_dir, '%s.rec' % dataset)
             self.iter[dataset] = mx.io.ImageRecordIter(
@@ -67,4 +68,14 @@ class TextureClassifier:
         for i in range(len(py)):
             confusion[y[i], py[i]] += 1
         return confusion
+
+    def mx_predict(self, data_path, b_size):
+        test_iter = mx.io.ImageRecordIter(
+            path_imgrec=data_path,
+            batch_size=b_size,
+            data_shape=(3, 224, 224),
+            mean_img=os.path.join(self.model_dir, 'mean_224.nd'),
+        )
+        prob = self.init_model.predict(test_iter)
+        return prob
 
