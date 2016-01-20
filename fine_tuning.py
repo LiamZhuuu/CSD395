@@ -22,5 +22,7 @@ model_dir = '/home/jiaxuzhu/developer/CSD395/model_publish'
 prefix = 'inception-stage1'
 n_iter = 6
 
-tc = TextureClassifier(data_dir, model_dir, prefix, n_iter, 128, 10)
+tc = TextureClassifier(model_dir, prefix, n_iter, 10)
+tc.mx_init(data_dir, 128)
+# tc.mx_confusion()
 print np.argmax(tc.mx_predict('/home/jiaxuzhu/data/sample_patches/test.rec', 128), axis=1)

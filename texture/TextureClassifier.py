@@ -18,25 +18,30 @@ def data_separation(data):
 
 
 class TextureClassifier:
-    def __init__(self, data_dir, model_dir, prefix, n_iter, b_size, n_class):
-        sets = ['train', 'eval', 'test']
-        self.iter = {}
+    def __init__(self,  model_dir, prefix, n_iter, n_class):
         self.n_class = n_class
+        self.iter = {}
         self.model_dir = model_dir
-        for dataset in sets:
-            rec_file = os.path.join(data_dir, '%s.rec' % dataset)
-            self.iter[dataset] = mx.io.ImageRecordIter(
-                path_imgrec=rec_file,
-                batch_size=b_size,
-                data_shape=(3, 224, 224),
-                mean_img=os.path.join(model_dir, 'mean_224.nd'),
-            )
         self.init_model = mx.model.FeedForward.load(os.path.join(model_dir, prefix), n_iter, ctx=mx.gpu())
         internals = self.init_model.symbol.get_internals()
         symbol = internals['flatten_output']
         symbol = mx.symbol.FullyConnected(data=symbol, name='fullc', num_hidden=n_class)
         self.symbol = mx.symbol.SoftmaxOutput(data=symbol, name='softmax')
         self.net = None
+
+    def mx_init(self, data_dir, b_size):
+        sets = ['train', 'eval', 'test']
+
+        for dataset in sets:
+            rec_file = os.path.join(data_dir, '%s.rec' % dataset)
+            if not os.path.exists(rec_file):
+                continue
+            self.iter[dataset] = mx.io.ImageRecordIter(
+                path_imgrec=rec_file,
+                batch_size=b_size,
+                data_shape=(3, 224, 224),
+                mean_img=os.path.join(self.model_dir, 'mean_224.nd'),
+            )
 
     def mx_training(self, n_epoch, l_rate, b_size, dst_prefix):
         opt = mx.optimizer.SGD(learning_rate=l_rate)
