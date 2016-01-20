@@ -25,4 +25,5 @@ n_iter = 6
 tc = TextureClassifier(model_dir, prefix, n_iter, 10)
 tc.mx_init(data_dir, 128)
 # tc.mx_confusion()
-print np.argmax(tc.mx_predict('/home/jiaxuzhu/data/sample_patches/test.rec', 128), axis=1)
+# print np.argmax(tc.mx_predict('/home/jiaxuzhu/data/sample_patches/test.rec', 128), axis=1)
+# tc.mx_predict_np(1, 128)

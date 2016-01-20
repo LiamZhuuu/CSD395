@@ -84,3 +84,11 @@ class TextureClassifier:
         prob = self.init_model.predict(test_iter)
         return prob
 
+    def mx_predict_np(self, data, b_size):
+        mean_img = mx.nd.load(os.path.join(self.model_dir, 'mean_224.nd'))["mean_img"]
+        mean_img = np.reshape(mean_img, (1, 3, 224, 224))
+        data = np.subtract(data, np.tile(mean_img, (len(data), 1)))
+        test_iter = mx.io.NDArrayIter(data, batch_size=b_size)
+        prob = self.init_model.predict(test_iter)
+        return prob
+
