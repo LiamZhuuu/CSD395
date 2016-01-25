@@ -30,7 +30,7 @@ class TextureClassifier:
         self.net = None
 
     def mx_init(self, data_dir, b_size):
-        sets = ['train', 'eval', 'test']
+        sets = ['train', 'val', 'test']
 
         for dataset in sets:
             rec_file = os.path.join(data_dir, '%s.rec' % dataset)
@@ -48,7 +48,7 @@ class TextureClassifier:
         self.net = mx.model.FeedForward(ctx=mx.gpu(), symbol=self.symbol, num_epoch=n_epoch, optimizer=opt,
                                         arg_params=self.init_model.arg_params, aux_params=self.init_model.aux_params,
                                         allow_extra_params=True)
-        self.net.fit(self.iter['train'], eval_data=self.iter['eval'],
+        self.net.fit(self.iter['train'], eval_data=self.iter['val'],
                      batch_end_callback=mx.callback.Speedometer(b_size, 30),
                      epoch_end_callback=mx.callback.do_checkpoint(dst_prefix))
 
@@ -85,9 +85,10 @@ class TextureClassifier:
         return prob
 
     def mx_predict_np(self, data, b_size):
-        mean_img = mx.nd.load(os.path.join(self.model_dir, 'mean_224.nd'))["mean_img"]
+        mean_img = mx.nd.load(os.path.join(self.model_dir, 'mean_224.nd'))["mean_img"].asnumpy()
         mean_img = np.reshape(mean_img, (1, 3, 224, 224))
-        data = np.subtract(data, np.tile(mean_img, (len(data), 1)))
+        mean_img = np.tile(mean_img, (len(data), 1, 1, 1))
+        data = np.subtract(data, mean_img)
         test_iter = mx.io.NDArrayIter(data, batch_size=b_size)
         prob = self.init_model.predict(test_iter)
         return prob
