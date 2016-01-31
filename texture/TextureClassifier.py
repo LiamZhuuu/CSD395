@@ -43,9 +43,9 @@ class TextureClassifier:
                 mean_img=os.path.join(self.model_dir, 'mean_224.nd'),
             )
 
-    def mx_training(self, n_epoch, l_rate, b_size, dst_prefix):
+    def mx_training(self, n_epoch, l_rate, b_size, dst_prefix, ctx):
         opt = mx.optimizer.SGD(learning_rate=l_rate)
-        self.net = mx.model.FeedForward(ctx=mx.gpu(), symbol=self.symbol, num_epoch=n_epoch, optimizer=opt,
+        self.net = mx.model.FeedForward(ctx=ctx, symbol=self.symbol, num_epoch=n_epoch, optimizer=opt,
                                         arg_params=self.init_model.arg_params, aux_params=self.init_model.aux_params,
                                         allow_extra_params=True)
         self.net.fit(self.iter['train'], eval_data=self.iter['val'],
@@ -54,24 +54,22 @@ class TextureClassifier:
 
         self.net.save(dst_prefix)
 
-    def mx_confusion(self):
+    def mx_confusion(self, lst_file):
         prob = self.init_model.predict(self.iter['test'])
         logging.info('Finish predict...')
-        self.iter['test'].reset()
-        y_batch = []
-        for dbatch in self.iter['test']:
-            label = dbatch.label[0].asnumpy()
-            pad = self.iter['test'].getpad()
-            real_size = label.shape[0] - pad
-            y_batch.append(label[0:real_size])
-        y = np.concatenate(y_batch)
-        # get prediction label from
+	
+        count = 0
+	idx = 0
         py = np.argmax(prob, axis=1)
-        acc1 = float(np.sum(py == y)) / len(y)
-        logging.info('testing accuracy = %f', acc1)
-        confusion = np.zeros((self.n_class, self.n_class))
-        for i in range(len(py)):
-            confusion[y[i], py[i]] += 1
+        confusion = np.zeros((self.n_class, self.n_class)).astype('uint64')
+	with open(lst_file, 'r') as lstFile:
+	    for line in lstFile.readlines():
+    		label = int(line.split('\t')[1])
+		confusion[label, py[idx]] += 1
+		if label == py[idx]:
+		    count += 1
+		idx += 1
+	print float(count) / len(py)
         return confusion
 
     def mx_predict(self, data_path, b_size):

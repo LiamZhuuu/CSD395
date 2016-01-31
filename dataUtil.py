@@ -75,15 +75,73 @@ def write_image(data_dir, dst_dir, p_labels):
     print label_count
 # def data_loading(image_dir, p_labels, n_sample, ):
 
+def gen_lst(data_dir, p_labels):
+    train_list = []
+    val_list = []
+    test_list = []
+    idx = 0
+    for i in range(len(p_labels)):
+        dir = p_labels[i]
+        for root, subdirs, files in os.walk(os.path.join(data_dir, dir)):
+    	    break
+	n_file = len(files)
+	print dir, len(files)
+	random.shuffle(files)
+        for j in range(len(files)):
+	    image = files[j]
+	    if image.split('.')[-1] != 'jpg':
+		continue
+	    line = '%d\t%d\t%s\n' % (idx, i, dir + '/' + image)
+	    if j < int(n_file*0.7):
+                train_list.append(line)
+	    elif j < int(n_file*0.8):
+		val_list.append(line)
+	    else:
+		test_list.append(line)
+            idx += 1
+        
+        dir = p_labels[i] + '_surround'
+        for root, subdirs, files in os.walk(os.path.join(data_dir, dir)):
+            break
+        n_file = len(files)
+        print dir, len(files)
+        random.shuffle(files)
+        for j in range(len(files)):
+            image = files[j]
+            if image.split('.')[-1] != 'jpg':
+                continue
+            line = '%d\t%d\t%s\n' % (idx, 9, dir + '/' + image)
+            if j < int(n_file*0.7):
+                train_list.append(line)   
+            elif j < int(n_file*0.8):
+                val_list.append(line)
+            else:
+                test_list.append(line)
+	    idx += 1
+
+    random.shuffle(train_list)
+    random.shuffle(val_list)
+    random.shuffle(test_list)
+    with open(os.path.join(data_dir, 'train.lst'), 'w') as train_file:
+        train_file.writelines(train_list)
+    with open(os.path.join(data_dir, 'val.lst'), 'w') as val_file:
+        val_file.writelines(val_list)
+    with open(os.path.join(data_dir, 'test.lst'), 'w') as test_file:
+        test_file.writelines(test_list)
 
 
-data_dir = '/home/jiaxuzhu/data/landmark_patches'
+	    
+                
+
+
+data_dir = '/home/jiaxuzhu/data/MD589_patches'
 dst_dir = '/home/jiaxuzhu/data/all_patches'
-p_labels = ['5N', '7n', '7N', '12N', 'Gr', 'LVe', 'Pn', 'SuVe', 'VLL', 'BackG']
+p_labels = ['5N', '7n', '7N', '12N', 'Gr', 'LVe', 'Pn', 'SuVe', 'VLL']
 
 n_sample = 1024
+gen_lst(data_dir, p_labels)
 # data_sampling(data_dir, dst_dir, p_labels, n_sample)
-write_image(data_dir, dst_dir, p_labels)
+# write_image(data_dir, dst_dir, p_labels)
 # for root, dirs, files in os.walk(data_dir):
 #     break
 #
